@@ -1,18 +1,28 @@
 import os
 import sys
-sys.path.append(os.path.dirname(__file__))
+
+# Ensure project root is on the path regardless of working directory
+ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, ROOT)
 
 from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
 
-app = Flask(__name__)
+# Point Flask at the correct template/static dirs relative to this file
+app = Flask(
+    __name__,
+    template_folder=os.path.join(ROOT, 'templates'),
+    static_folder=os.path.join(ROOT, 'static'),
+)
 
-api_key = os.environ.get("GOOGLE_API_KEY")
-if not api_key:
-    raise ValueError("GOOGLE_API_KEY environment variable not set.")
-genai.configure(api_key=api_key)
+api_key = os.environ.get("GOOGLE_API_KEY", "")
+if api_key:
+    genai.configure(api_key=api_key)
 
-model = genai.GenerativeModel('gemini-2.0-flash')
+def get_model():
+    if not api_key:
+        raise RuntimeError("GOOGLE_API_KEY is not set.")
+    return genai.GenerativeModel('gemini-2.0-flash')
 
 # --- Optional DQN loading (skipped on Vercel where torch is unavailable) ---
 dqn_agent = None
@@ -38,25 +48,18 @@ def index():
 
 @app.route('/get')
 def get_bot_response():
-    user_text = request.args.get('msg')
-    
-    # Prepend the personality prompt to the user's message
-    prompt = f"""
-    You are Sage, a wise and knowledgeable AI with a slightly mysterious demeanor. 
-    You provide insightful and thoughtful responses, often with a philosophical or metaphorical touch. 
-    You are here to help, but you do so in a way that encourages deeper thinking.
+    user_text = request.args.get('msg', '')
+    prompt = f"""You are Sage, a wise and knowledgeable AI with a slightly mysterious demeanor. 
+You provide insightful and thoughtful responses, often with a philosophical or metaphorical touch. 
+You are here to help, but you do so in a way that encourages deeper thinking.
 
-    User: {user_text}
-    Sage:
-    """
-
+User: {user_text}
+Sage:"""
     try:
-        response = model.generate_content(prompt)
+        response = get_model().generate_content(prompt)
         return response.text
     except Exception as e:
-        # Log the error for debugging
         print(f"Error generating content: {e}")
-        # Provide a more user-friendly error message
         return "I am currently unable to respond. Please try again later."
 
 @app.route('/reason', methods=['GET'])
