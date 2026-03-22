@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAGE - Self-improving Agent for General-purpose Execution</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-window">
+            <div class="chat-header">
+                <h1>SAGE</h1>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <!-- Chat messages will be appended here -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="user-input" placeholder="Type your message...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <div class="sage-visualizer">
+            <h2>SAGE Reasoning Visualizer</h2>
+            <div class="visualizer-content">
+                <img src="{{ url_for('static', filename='images/sage.png') }}" alt="SAGE" class="sage-image">
+                <canvas id="dqn-canvas"></canvas>
+                <div class="dqn-output">
+                    <h3>DQN Output:</h3>
+                    <p><strong>Input Text:</strong> <span id="viz-input-text"></span></p>
+                    <p><strong>Decoded Action:</strong> <span id="viz-decoded-action"></span></p>
+                    <div class="q-values-chart">
+                        <h4>Q-Values:</h4>
+                        <canvas id="q-values-chart"></canvas>
+                    </div>
+                    <div class="state-vector-chart">
+                        <h4>State Vector (first 20 dimensions):</h4>
+                        <canvas id="state-vector-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html>

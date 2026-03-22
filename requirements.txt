@@ -1,2 +1,6 @@
 Flask==2.0.1
 requests
+Werkzeug==2.0.3
+google-generativeai
+torch
+torchvision

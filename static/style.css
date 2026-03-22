@@ -1,0 +1,235 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1a2e; /* Dark background for a techy feel */
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden; /* Hide overflow for dynamic elements */
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align items to the top */
+    gap: 20px; /* Space between chat and visualizer */
+    padding: 20px;
+    max-width: 1400px; /* Max width for the whole application */
+    width: 100%;
+}
+
+.chat-window {
+    flex: 1; /* Allow chat window to grow */
+    min-width: 400px;
+    max-width: 500px;
+    background-color: #2a2a4a; /* Slightly lighter dark background */
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    height: 80vh; /* Adjust height to fit screen better */
+}
+
+.chat-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #3a3a5a;
+    display: flex;
+    align-items: center;
+    background-color: #3a3a5a;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.chat-header h1 {
+    margin: 0;
+    font-size: 1.8em;
+    color: #00bcd4; /* A vibrant blue for Sage */
+    text-shadow: 0 0 8px rgba(0, 188, 212, 0.7);
+}
+
+.chat-messages {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-message {
+    margin-bottom: 10px;
+    padding: 12px 15px;
+    border-radius: 20px;
+    max-width: 75%;
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+
+.user-message {
+    background-color: #4a4a6a;
+    align-self: flex-end;
+    color: #e0e0e0;
+    border-bottom-right-radius: 5px;
+}
+
+.sage-message {
+    background-color: #00bcd4;
+    align-self: flex-start;
+    color: #1a1a2e;
+    border-bottom-left-radius: 5px;
+}
+
+.chat-input {
+    padding: 15px 20px;
+    border-top: 1px solid #3a3a5a;
+    display: flex;
+    gap: 10px;
+    background-color: #2a2a4a;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+#user-input {
+    flex-grow: 1;
+    border: 1px solid #5a5a7a;
+    border-radius: 20px;
+    padding: 10px 15px;
+    background-color: #3a3a5a;
+    color: #e0e0e0;
+    font-size: 1em;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#user-input:focus {
+    border-color: #00bcd4;
+}
+
+.chat-input button {
+    background-color: #00bcd4;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.chat-input button:hover {
+    background-color: #00a0b8;
+    transform: translateY(-2px);
+}
+
+/* Sage Visualizer Styling */
+.sage-visualizer {
+    flex: 2; /* Allow visualizer to take more space */
+    min-width: 600px;
+    background-color: #2a2a4a;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 80vh;
+    overflow-y: auto; /* Allow scrolling if content overflows */
+}
+
+.sage-visualizer h2 {
+    color: #00bcd4;
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(0, 188, 212, 0.8);
+}
+
+.visualizer-content {
+    position: relative;
+    width: 100%;
+    max-width: 800px; /* Max width for the visualizer content */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.sage-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 188, 212, 0.5);
+}
+
+#dqn-canvas {
+    position: absolute; /* Overlay canvas on top of the image */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Ensure canvas is transparent to show image underneath */
+    background-color: transparent; 
+    pointer-events: none; /* Allow clicks to pass through to elements below if needed */
+}
+
+.dqn-output {
+    background-color: #3a3a5a;
+    border-radius: 10px;
+    padding: 15px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    margin-top: 20px;
+}
+
+.dqn-output h3 {
+    color: #00bcd4;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.dqn-output p {
+    margin-bottom: 5px;
+    font-size: 0.95em;
+}
+
+.dqn-output strong {
+    color: #e0e0e0;
+}
+
+.q-values-chart, .state-vector-chart {
+    width: 100%;
+    height: 200px; /* Fixed height for charts */
+    margin-top: 15px;
+    background-color: #2a2a4a;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
+}
+
+.q-values-chart h4, .state-vector-chart h4 {
+    color: #00bcd4;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .chat-window, .sage-visualizer {
+        width: 90%;
+        max-width: 600px;
+        height: auto;
+        min-height: unset;
+    }
+
+    .sage-visualizer {
+        margin-top: 20px;
+    }
+}
