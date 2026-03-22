@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    console.log("Document is ready. Initializing chat and visualizer.");
+
     // Initialize Chart.js instances
     let qValuesChart;
     let stateVectorChart;
@@ -6,18 +8,38 @@ $(document).ready(function() {
     // Canvas and image variables for dynamic visualization
     const dqnCanvas = document.getElementById('dqn-canvas');
     const dqnCtx = dqnCanvas.getContext('2d');
-    const sageImage = new Image();
-    sageImage.src = "{{ url_for('static', filename='images/sage.png') }}";
-    let imageLoaded = false;
 
-    sageImage.onload = () => {
-        imageLoaded = true;
-        // Set canvas dimensions to match image or a desired size
-        // For better control, we might set a fixed size or scale
-        dqnCanvas.width = sageImage.width; // Or a fixed value like 600
-        dqnCanvas.height = sageImage.height; // Or a fixed value like 600
-        drawSageImage(); // Draw initially
+    // Load all Sage images
+    const sageImages = {
+        'neutral': new Image(),
+        'positive': new Image(),
+        'confident': new Image(),
+        'uncertain': new Image()
     };
+
+    sageImages.neutral.src = "{{ url_for('static', filename='images/sage.png') }}";
+    sageImages.positive.src = "{{ url_for('static', filename='images/Futuristic AI girl with neon glow.png') }}";
+    sageImages.confident.src = "{{ url_for('static', filename='images/Futuristic AI with vibrant energy.png') }}";
+    sageImages.uncertain.src = "{{ url_for('static', filename='images/Shocked AI in neon lights.png') }}";
+
+    let currentSageImage = sageImages.neutral; // Start with neutral image
+    let allImagesLoaded = false;
+    let loadedCount = 0;
+    const totalImages = Object.keys(sageImages).length;
+
+    Object.values(sageImages).forEach(img => {
+        img.onload = () => {
+            loadedCount++;
+            if (loadedCount === totalImages) {
+                allImagesLoaded = true;
+                // Set canvas dimensions based on the neutral image or a desired size
+                // For better control, we might set a fixed size or scale
+                dqnCanvas.width = sageImages.neutral.width; // Or a fixed value like 600
+                dqnCanvas.height = sageImages.neutral.height; // Or a fixed value like 600
+                drawSageImage(); // Draw initially
+            }
+        };
+    });
 
     // Animation variables
     let currentInputText = "";
@@ -71,11 +93,45 @@ $(document).ready(function() {
     }
 
     function drawSageImage() {
-        if (imageLoaded) {
+        if (allImagesLoaded) {
             dqnCtx.clearRect(0, 0, dqnCanvas.width, dqnCanvas.height);
-            dqnCtx.drawImage(sageImage, 0, 0, dqnCanvas.width, dqnCanvas.height);
+            dqnCtx.drawImage(currentSageImage, 0, 0, dqnCanvas.width, dqnCanvas.height);
         }
     }
+
+    // Function to decide which Sage image to display
+    function updateSageImageExpression(dqnData) {
+        const qValues = dqnData.q_values;
+        const selectedAction = dqnData.selected_action_index;
+
+        if (!qValues || qValues.length === 0) {
+            currentSageImage = sageImages.neutral;
+            return;
+        }
+
+        const maxQValue = Math.max(...qValues);
+        const minQValue = Math.min(...qValues);
+        const qValueRange = maxQValue - minQValue;
+
+        // Thresholds for expression changes (these can be tuned)
+        const confidentThreshold = 0.7; // If max Q-value is 70% of the range from min to max
+        const uncertainThreshold = 0.3; // If max Q-value is within 30% of the range from min
+
+        if (qValueRange > 0) {
+            const normalizedMaxQ = (maxQValue - minQValue) / qValueRange;
+
+            if (normalizedMaxQ > confidentThreshold) {
+                currentSageImage = sageImages.confident;
+            } else if (normalizedMaxQ < uncertainThreshold) {
+                currentSageImage = sageImages.uncertain;
+            } else {
+                currentSageImage = sageImages.positive; // Default for moderate confidence
+            }
+        } else {
+            currentSageImage = sageImages.neutral; // All Q-values are the same
+        }
+    }
+
 
     // Function to draw dynamic elements on canvas
     function drawDynamicVisuals() {
@@ -246,26 +302,40 @@ $(document).ready(function() {
     initializeCharts();
 
     function sendMessage() {
+        console.log("sendMessage() called.");
         var userText = $("#user-input").val();
-        if (userText.trim() === "") return;
+        if (userText.trim() === "") {
+            console.log("User input is empty. Not sending message.");
+            return;
+        }
 
         var userHTML = '<div class="chat-message user-message"><p>' + userText + '</p></div>';
         $("#chat-messages").append(userHTML);
         $("#user-input").val("");
+        console.log("User message appended and input cleared.");
 
         // Scroll to the bottom of the chat
         $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
+        console.log("Chat scrolled to bottom.");
 
         // Send message to Gemini API
         $.get("/get", { msg: userText }).done(function(data) {
+            console.log("Received response from /get:", data);
             var botHTML = '<div class="chat-message sage-message"><p>' + data + '</p></div>';
             $("#chat-messages").append(botHTML);
             // Scroll to the bottom of the chat after bot response
+            $("#chat-messages")[0].scrollTop = $("#chat-messages")[0].scrollHeight;
+            console.log("Bot message appended and chat scrolled.");
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Error sending message to /get:", textStatus, errorThrown, jqXHR);
+            var errorHTML = '<div class="chat-message sage-message error-message"><p>Error: Could not get response from Sage.</p></div>';
+            $("#chat-messages").append(errorHTML);
             $("#chat-messages")[0].scrollTop = $("#chat-messages")[0].scrollHeight;
         });
 
         // Send message to DQN reasoning endpoint
         $.get("/reason", { text: userText }).done(function(data) {
+            console.log("Received response from /reason:", data);
             if (data.error) {
                 console.error("DQN Reasoning Error:", data.error);
                 $("#viz-input-text").text("Error: " + data.error);
@@ -280,6 +350,7 @@ $(document).ready(function() {
                 currentQValues = [];
                 currentDecodedAction = "";
                 selectedActionIndex = -1;
+                currentSageImage = sageImages.uncertain; // Show uncertain on error
                 return;
             }
 
@@ -289,6 +360,9 @@ $(document).ready(function() {
             currentQValues = data.q_values;
             currentDecodedAction = data.decoded_action;
             selectedActionIndex = data.selected_action_index;
+
+            // Update Sage image expression based on DQN data
+            updateSageImageExpression(data);
 
             $("#viz-input-text").text(data.input_text);
             $("#viz-decoded-action").text(data.decoded_action);
@@ -304,12 +378,19 @@ $(document).ready(function() {
             // Update State Vector Chart (first 20 dimensions)
             stateVectorChart.data.datasets[0].data = data.state.slice(0, 20);
             stateVectorChart.update();
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Error sending message to /reason:", textStatus, errorThrown, jqXHR);
+            $("#viz-input-text").text("Error: Could not get reasoning.");
+            $("#viz-decoded-action").text("N/A");
+            currentSageImage = sageImages.uncertain; // Show uncertain on error
         });
     }
 
     // Event listeners for sending messages
     $("#user-input").keypress(function(e) {
+        console.log("Key pressed in user-input. Key code:", e.which);
         if (e.which == 13) { // Enter key
+            console.log("Enter key pressed. Calling sendMessage().");
             sendMessage();
         }
     });
@@ -317,6 +398,7 @@ $(document).ready(function() {
     // Assuming there's a send button in index.html
     // If not, you might need to add one or rely solely on the Enter key
     $(".chat-input button").click(function() {
+        console.log("Send button clicked. Calling sendMessage().");
         sendMessage();
     });
 });

@@ -102,6 +102,9 @@ class DQNAgent:
 class ReasoningEnv(gym.Env):
     def __init__(self, training_data_path):
         super(ReasoningEnv, self).__init__()
+        print(f"ReasoningEnv: Received training_data_path: {training_data_path}")
+        import os
+        print(f"ReasoningEnv: Current working directory: {os.getcwd()}")
         with open(training_data_path, 'r', encoding='utf-8') as f:
             self.training_data = json.load(f)
 

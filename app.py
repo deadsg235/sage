@@ -1,9 +1,13 @@
+import os
+import sys
+# Add the current directory to sys.path for module discovery
+sys.path.append(os.path.dirname(__file__))
+
+from dqn_core.Reasoning_DQN import DQNAgent, QNetwork, ReasoningEnv
 from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
-import os
 import torch
 import numpy as np
-from dqn_core.Reasoning_DQN import DQNAgent, QNetwork, ReasoningEnv
 
 app = Flask(__name__)
 
@@ -25,8 +29,8 @@ ACTION_SIZE = 10 # This should match the action_space.n in ReasoningEnv
 
 # Path to the saved model and training data
 # Adjust these paths as necessary for your environment
-MODEL_PATH = "dqn-core/reasoning_dqn_model.pth"
-TRAINING_DATA_PATH = "dqn-core/training_data/training_data.json"
+MODEL_PATH = "dqn_core/reasoning_dqn_model.pth"
+TRAINING_DATA_PATH = "dqn_core/training_data/training_data.json"
 
 # Instantiate the DQNAgent and ReasoningEnv
 dqn_agent = DQNAgent(STATE_SIZE, ACTION_SIZE)
