@@ -47,6 +47,7 @@ body {
     position: relative;
     width: min(420px, 45vw);
     aspect-ratio: 3/4;
+    z-index: 1;
 }
 
 .avatar-wrap canvas#aura-canvas {
@@ -58,23 +59,22 @@ body {
     z-index: 0;
 }
 
-#sage-img {
-    position: relative;
-    z-index: 1;
+.avatar-wrap img {
+    position: absolute;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 12px;
-    filter: brightness(0.9) saturate(1.1);
-    transition: filter 0.8s ease;
     mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    transition: opacity 0.7s ease;
+    opacity: 0;
 }
 
-#sage-img.thinking { filter: brightness(0.7) saturate(0.6) hue-rotate(180deg); }
-#sage-img.positive { filter: brightness(1.1) saturate(1.4); }
-#sage-img.uncertain { filter: brightness(0.8) saturate(0.8) hue-rotate(30deg); }
-#sage-img.confident { filter: brightness(1.15) saturate(1.6) contrast(1.05); }
+.avatar-wrap img.active {
+    opacity: 1;
+}
 
 .scan-line {
     position: absolute;

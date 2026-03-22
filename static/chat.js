@@ -101,7 +101,6 @@ $(document).ready(function () {
     }
 
     // ── Apply mood to avatar image ───────────────────────────────────────────
-    const sageImg = document.getElementById('sage-img');
     const hudStatus = document.getElementById('hud-status');
 
     const STATUS_TEXT = {
@@ -113,7 +112,9 @@ $(document).ready(function () {
     };
 
     function applyMood(mood) {
-        sageImg.className = mood === 'neutral' ? '' : mood;
+        document.querySelectorAll('.sage-img').forEach(img => {
+            img.classList.toggle('active', img.dataset.mood === mood);
+        });
         hudStatus.textContent = STATUS_TEXT[mood] || 'AWAITING INPUT';
         const aura = MOOD_AURA[mood];
         hudStatus.style.color = `rgba(${aura.color},0.7)`;

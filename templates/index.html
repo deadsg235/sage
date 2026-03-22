@@ -15,7 +15,11 @@
     <div class="scene">
         <div class="avatar-wrap">
             <canvas id="aura-canvas"></canvas>
-            <img id="sage-img" src="{{ url_for('static', filename='images/sage.png') }}" alt="SAGE">
+            <img class="sage-img active" data-mood="neutral"   src="{{ url_for('static', filename='images/sage.png') }}" alt="SAGE">
+            <img class="sage-img"        data-mood="thinking"  src="{{ url_for('static', filename='images/sage.png') }}" alt="SAGE thinking">
+            <img class="sage-img"        data-mood="positive"  src="{{ url_for('static', filename='images/sage_positive.png') }}" alt="SAGE positive">
+            <img class="sage-img"        data-mood="confident" src="{{ url_for('static', filename='images/sage_confident.png') }}" alt="SAGE confident">
+            <img class="sage-img"        data-mood="uncertain" src="{{ url_for('static', filename='images/sage_uncertain.png') }}" alt="SAGE uncertain">
             <div class="scan-line"></div>
         </div>
 
@@ -34,7 +38,13 @@
     </div>
 
     <script>
-        const SAGE_IMG_URL = "{{ url_for('static', filename='images/sage.png') }}";
+        const SAGE_IMAGES = {
+            neutral:   "{{ url_for('static', filename='images/sage.png') }}",
+            thinking:  "{{ url_for('static', filename='images/sage.png') }}",
+            positive:  "{{ url_for('static', filename='images/sage_positive.png') }}",
+            confident: "{{ url_for('static', filename='images/sage_confident.png') }}",
+            uncertain: "{{ url_for('static', filename='images/sage_uncertain.png') }}",
+        };
     </script>
     <script src="{{ url_for('static', filename='chat.js') }}"></script>
 </body>

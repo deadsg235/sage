@@ -1,49 +1,36 @@
 import os
 import sys
-# Add the current directory to sys.path for module discovery
 sys.path.append(os.path.dirname(__file__))
 
-from dqn_core.Reasoning_DQN import DQNAgent, QNetwork, ReasoningEnv
 from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
-import torch
-import numpy as np
 
 app = Flask(__name__)
 
-# Configure the Gemini API
-# IMPORTANT: Set the GOOGLE_API_KEY environment variable before running the app.
-# For example: export GOOGLE_API_KEY="YOUR_API_KEY"
 api_key = os.environ.get("GOOGLE_API_KEY")
 if not api_key:
     raise ValueError("GOOGLE_API_KEY environment variable not set.")
 genai.configure(api_key=api_key)
 
-# Create a new model
-model = genai.GenerativeModel('gemini-3-flash-preview')
+model = genai.GenerativeModel('gemini-2.0-flash')
 
-# --- DQN Model Loading ---
-# Define parameters used by the model
-STATE_SIZE = 128
-ACTION_SIZE = 10 # This should match the action_space.n in ReasoningEnv
+# --- Optional DQN loading (skipped on Vercel where torch is unavailable) ---
+dqn_agent = None
+reasoning_env = None
 
-# Path to the saved model and training data
-# Adjust these paths as necessary for your environment
-MODEL_PATH = "dqn_core/reasoning_dqn_model.pth"
-TRAINING_DATA_PATH = "dqn_core/training_data/training_data.json"
-
-# Instantiate the DQNAgent and ReasoningEnv
-dqn_agent = DQNAgent(STATE_SIZE, ACTION_SIZE)
-reasoning_env = ReasoningEnv(TRAINING_DATA_PATH)
-
-# Load the trained model
 try:
+    import torch
+    import numpy as np
+    from dqn_core.Reasoning_DQN import DQNAgent, ReasoningEnv
+    STATE_SIZE, ACTION_SIZE = 128, 10
+    MODEL_PATH = os.path.join(os.path.dirname(__file__), "dqn_core/reasoning_dqn_model.pth")
+    TRAINING_DATA_PATH = os.path.join(os.path.dirname(__file__), "dqn_core/training_data/training_data.json")
+    dqn_agent = DQNAgent(STATE_SIZE, ACTION_SIZE)
+    reasoning_env = ReasoningEnv(TRAINING_DATA_PATH)
     dqn_agent.load(MODEL_PATH)
-    print(f"DQN model loaded successfully from {MODEL_PATH}")
+    print("DQN model loaded.")
 except Exception as e:
-    print(f"Failed to load the DQN model: {e}")
-    # Depending on your application, you might want to exit or handle this more gracefully
-# --- End DQN Model Loading ---
+    print(f"DQN unavailable (running without it): {e}")
 
 @app.route('/')
 def index():
@@ -74,27 +61,23 @@ def get_bot_response():
 
 @app.route('/reason', methods=['GET'])
 def get_dqn_reasoning():
+    if dqn_agent is None or reasoning_env is None:
+        return jsonify({"error": "DQN reasoning unavailable in this environment."}), 503
+
     user_text = request.args.get('text', '')
     if not user_text:
         return jsonify({"error": "No text provided for reasoning."}), 400
 
     try:
-        # Convert text to state
+        import torch
         state_tensor = reasoning_env.text_to_state(user_text)
-        
-        # Get Q-values
         with torch.no_grad():
-            q_values_tensor = dqn_agent.q_network(state_tensor)
-            q_values = q_values_tensor.squeeze().tolist() # Convert to list for JSON
-
-        # Select action
-        # Using a small epsilon for exploitation during reasoning visualization
-        action_index = dqn_agent.select_action(state_tensor, epsilon=0.1) 
+            q_values = dqn_agent.q_network(state_tensor).squeeze().tolist()
+        action_index = dqn_agent.select_action(state_tensor, epsilon=0.1)
         decoded_action = reasoning_env.idx_to_word[action_index]
-
         return jsonify({
             "input_text": user_text,
-            "state": state_tensor.squeeze().tolist(), # Convert to list for JSON
+            "state": state_tensor.squeeze().tolist(),
             "q_values": q_values,
             "selected_action_index": action_index,
             "decoded_action": decoded_action
