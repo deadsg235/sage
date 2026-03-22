@@ -3,47 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAGE - Self-improving Agent for General-purpose Execution</title>
+    <title>SAGE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="chat-window">
-            <div class="chat-header">
-                <h1>SAGE</h1>
-            </div>
-            <div class="chat-messages" id="chat-messages">
-                <!-- Chat messages will be appended here -->
-            </div>
-            <div class="chat-input">
-                <input type="text" id="user-input" placeholder="Type your message...">
-                <button>Send</button>
-            </div>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="scene">
+        <div class="avatar-wrap">
+            <canvas id="aura-canvas"></canvas>
+            <img id="sage-img" src="{{ url_for('static', filename='images/sage.png') }}" alt="SAGE">
+            <div class="scan-line"></div>
         </div>
 
-        <div class="sage-visualizer">
-            <h2>SAGE Reasoning Visualizer</h2>
-            <div class="visualizer-content">
-                <img src="{{ url_for('static', filename='images/sage.png') }}" alt="SAGE" class="sage-image">
-                <canvas id="dqn-canvas"></canvas>
-                <div class="dqn-output">
-                    <h3>DQN Output:</h3>
-                    <p><strong>Input Text:</strong> <span id="viz-input-text"></span></p>
-                    <p><strong>Decoded Action:</strong> <span id="viz-decoded-action"></span></p>
-                    <div class="q-values-chart">
-                        <h4>Q-Values:</h4>
-                        <canvas id="q-values-chart"></canvas>
-                    </div>
-                    <div class="state-vector-chart">
-                        <h4>State Vector (first 20 dimensions):</h4>
-                        <canvas id="state-vector-chart"></canvas>
-                    </div>
-                </div>
-            </div>
+        <div class="hud-label">
+            <span class="hud-title">S·A·G·E</span>
+            <span class="hud-sub" id="hud-status">AWAITING INPUT</span>
         </div>
     </div>
+
+    <div class="chat-panel" id="chat-panel">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-row">
+            <input type="text" id="user-input" placeholder="Speak to Sage…" autocomplete="off">
+            <button id="send-btn">&#9654;</button>
+        </div>
+    </div>
+
+    <script>
+        const SAGE_IMG_URL = "{{ url_for('static', filename='images/sage.png') }}";
+    </script>
     <script src="{{ url_for('static', filename='chat.js') }}"></script>
 </body>
 </html>

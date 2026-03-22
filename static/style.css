@@ -1,235 +1,235 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --accent: #00e5ff;
+    --accent2: #7c4dff;
+    --danger: #ff1744;
+    --positive: #00e676;
+    --bg: #050510;
+    --glass: rgba(10, 10, 30, 0.6);
+    --border: rgba(0, 229, 255, 0.15);
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #1a1a2e; /* Dark background for a techy feel */
-    color: #e0e0e0;
-    margin: 0;
-    padding: 0;
+    background: var(--bg);
+    color: #cdd6f4;
+    font-family: 'Rajdhani', sans-serif;
+    height: 100vh;
+    overflow: hidden;
     display: flex;
-    justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    overflow: hidden; /* Hide overflow for dynamic elements */
-}
-
-.container {
-    display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align items to the top */
-    gap: 20px; /* Space between chat and visualizer */
-    padding: 20px;
-    max-width: 1400px; /* Max width for the whole application */
-    width: 100%;
 }
 
-.chat-window {
-    flex: 1; /* Allow chat window to grow */
-    min-width: 400px;
-    max-width: 500px;
-    background-color: #2a2a4a; /* Slightly lighter dark background */
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+/* ── Background particle canvas ── */
+#bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ── Main scene ── */
+.scene {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
-    height: 80vh; /* Adjust height to fit screen better */
-}
-
-.chat-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid #3a3a5a;
-    display: flex;
     align-items: center;
-    background-color: #3a3a5a;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
+    gap: 24px;
+    flex: 1;
+    height: 100vh;
+    justify-content: center;
 }
 
-.chat-header h1 {
-    margin: 0;
-    font-size: 1.8em;
-    color: #00bcd4; /* A vibrant blue for Sage */
-    text-shadow: 0 0 8px rgba(0, 188, 212, 0.7);
+/* ── Avatar ── */
+.avatar-wrap {
+    position: relative;
+    width: min(420px, 45vw);
+    aspect-ratio: 3/4;
+}
+
+.avatar-wrap canvas#aura-canvas {
+    position: absolute;
+    inset: -40px;
+    width: calc(100% + 80px);
+    height: calc(100% + 80px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+#sage-img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    filter: brightness(0.9) saturate(1.1);
+    transition: filter 0.8s ease;
+    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+#sage-img.thinking { filter: brightness(0.7) saturate(0.6) hue-rotate(180deg); }
+#sage-img.positive { filter: brightness(1.1) saturate(1.4); }
+#sage-img.uncertain { filter: brightness(0.8) saturate(0.8) hue-rotate(30deg); }
+#sage-img.confident { filter: brightness(1.15) saturate(1.6) contrast(1.05); }
+
+.scan-line {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: 12px;
+    overflow: hidden;
+    pointer-events: none;
+}
+.scan-line::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
+    animation: scan 4s linear infinite;
+}
+@keyframes scan {
+    0%   { top: -2px; }
+    100% { top: 100%; }
+}
+
+/* ── HUD label ── */
+.hud-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.25em;
+}
+.hud-title {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+}
+.hud-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: rgba(0, 229, 255, 0.5);
+    transition: color 0.5s;
+}
+
+/* ── Chat panel ── */
+.chat-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: min(380px, 38vw);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid var(--border);
+    padding: 20px 16px 16px;
 }
 
 .chat-messages {
-    flex-grow: 1;
-    padding: 20px;
+    flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
 }
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .chat-message {
-    margin-bottom: 10px;
-    padding: 12px 15px;
-    border-radius: 20px;
-    max-width: 75%;
-    word-wrap: break-word;
-    line-height: 1.5;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    max-width: 88%;
+    animation: msgIn 0.25s ease;
+}
+@keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .user-message {
-    background-color: #4a4a6a;
     align-self: flex-end;
-    color: #e0e0e0;
-    border-bottom-right-radius: 5px;
+    background: rgba(124, 77, 255, 0.18);
+    border: 1px solid rgba(124, 77, 255, 0.3);
+    color: #e0d7ff;
 }
 
 .sage-message {
-    background-color: #00bcd4;
     align-self: flex-start;
-    color: #1a1a2e;
-    border-bottom-left-radius: 5px;
+    background: rgba(0, 229, 255, 0.08);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    color: #cdd6f4;
 }
 
-.chat-input {
-    padding: 15px 20px;
-    border-top: 1px solid #3a3a5a;
+.sage-message.typing::after {
+    content: '▋';
+    animation: blink 0.7s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ── Input row ── */
+.chat-input-row {
     display: flex;
-    gap: 10px;
-    background-color: #2a2a4a;
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
+    gap: 8px;
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
 }
 
 #user-input {
-    flex-grow: 1;
-    border: 1px solid #5a5a7a;
-    border-radius: 20px;
-    padding: 10px 15px;
-    background-color: #3a3a5a;
-    color: #e0e0e0;
-    font-size: 1em;
-    outline: none;
-    transition: border-color 0.3s ease;
-}
-
-#user-input:focus {
-    border-color: #00bcd4;
-}
-
-.chat-input button {
-    background-color: #00bcd4;
-    color: #1a1a2e;
-    border: none;
-    border-radius: 20px;
-    padding: 10px 20px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.chat-input button:hover {
-    background-color: #00a0b8;
-    transform: translateY(-2px);
-}
-
-/* Sage Visualizer Styling */
-.sage-visualizer {
-    flex: 2; /* Allow visualizer to take more space */
-    min-width: 600px;
-    background-color: #2a2a4a;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 80vh;
-    overflow-y: auto; /* Allow scrolling if content overflows */
-}
-
-.sage-visualizer h2 {
-    color: #00bcd4;
-    font-size: 2em;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px rgba(0, 188, 212, 0.8);
-}
-
-.visualizer-content {
-    position: relative;
-    width: 100%;
-    max-width: 800px; /* Max width for the visualizer content */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
-
-.sage-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 188, 212, 0.5);
-}
-
-#dqn-canvas {
-    position: absolute; /* Overlay canvas on top of the image */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Ensure canvas is transparent to show image underneath */
-    background-color: transparent; 
-    pointer-events: none; /* Allow clicks to pass through to elements below if needed */
-}
-
-.dqn-output {
-    background-color: #3a3a5a;
-    border-radius: 10px;
-    padding: 15px;
-    width: 100%;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    margin-top: 20px;
-}
-
-.dqn-output h3 {
-    color: #00bcd4;
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.dqn-output p {
-    margin-bottom: 5px;
-    font-size: 0.95em;
-}
-
-.dqn-output strong {
-    color: #e0e0e0;
-}
-
-.q-values-chart, .state-vector-chart {
-    width: 100%;
-    height: 200px; /* Fixed height for charts */
-    margin-top: 15px;
-    background-color: #2a2a4a;
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 10px;
-    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
+    padding: 10px 14px;
+    color: #e0e0e0;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+#user-input:focus { border-color: var(--accent); }
+#user-input::placeholder { color: rgba(255,255,255,0.2); }
+
+#send-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 8px;
+    width: 42px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+#send-btn:hover {
+    background: rgba(0, 229, 255, 0.12);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
 }
 
-.q-values-chart h4, .state-vector-chart h4 {
-    color: #00bcd4;
-    margin-top: 0;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-    .container {
-        flex-direction: column;
-        align-items: center;
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .chat-panel {
+        width: 100vw;
+        top: auto;
+        height: 45vh;
+        border-left: none;
+        border-top: 1px solid var(--border);
     }
-
-    .chat-window, .sage-visualizer {
-        width: 90%;
-        max-width: 600px;
-        height: auto;
-        min-height: unset;
-    }
-
-    .sage-visualizer {
-        margin-top: 20px;
-    }
+    .scene { height: 55vh; }
+    .avatar-wrap { width: min(200px, 50vw); }
 }
